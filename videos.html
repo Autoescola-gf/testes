@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTO ESCOLA GUARDA | MINHAS AULAS</title>
+     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #c1c1c1;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #0077B5;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: white;
+            margin-bottom: 10px;
+        }
+        /* Estilos para o Botão de Presença */
+        .presenca-container {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #c5c5c5;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #presencaButton {
+            background-color: #28a745; /* Cor Verde para Ação Positiva */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        #presencaButton:hover:not(:disabled) {
+            background-color: #901090;
+        }
+        #presencaButton:disabled {
+            background-color: #901090;
+            cursor: not-allowed;
+        }
+        #presencaMessage {
+            margin-top: 10px;
+        }
+
+        /* Estilos para a Navegação de Aulas */
+        .nav-buttons {
+            background-color: #c1c1c1;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .nav-buttons button {
+            background-color: #505050;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .nav-buttons button:hover {
+            background-color: #707070;
+        }
+        .nav-buttons button.active {
+            background-color: #901090; 
+            border: 2px solid #901090;
+        }
+        
+        .video-content-wrapper {
+            max-width: 900px;
+            margin: 20px auto;
+            background: black;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .aula-container {
+            display: none; 
+        }
+        
+        .vimeo-embed {
+            position: relative;
+            padding-bottom: 56.25%; 
+            height: 0;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        .vimeo-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        
+        /* Estilo para o botão de sair */
+        #logoutButton {
+            display: block;
+            margin: 0 auto 20px auto;
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        #logoutButton:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <button id="logoutButton" onclick="logout()">Sair / Encerrar Sessão</button>
+    <p id="tokenExpirationDisplay" style="text-align: center; margin-top: 10px; margin-bottom: 20px; font-weight: bold; font-size: 1.1em;"></p>
+    <h1>🎓 Conteúdo Exclusivo | Selecione uma aula para assistir</h1>
+    <div class="nav-buttons">
+        <button id="btn-aula1" onclick="showLesson('aula1')">Aula 1: Sinalização </button>
+        <button id="btn-aula2" onclick="showLesson('aula2')">Aula 2: Sinalização </button>
+        <button id="btn-aula3" onclick="showLesson('aula3')">Aula 3: Sinalização </button>
+        <button id="btn-aula4" onclick="showLesson('aula4')">Aula 4: Sinalização </button>
+        </div>
+
+    <div class="video-content-wrapper">
+        
+        <div id="aula1" class="aula-container">
+            <h2>Aula 1: Sinalização</h2>
+            <div class="vimeo-embed">
+                <iframe src="https://player.vimeo.com/video/1140876472?color=0077B5&title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <div id="aula2" class="aula-container">
+            <h2>Aula 2: Sinalização</h2>
+            <div class="vimeo-embed">
+                 <iframe src="https://player.vimeo.com/video/1140903162?color=0077B5&title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+        
+        <div id="aula3" class="aula-container">
+            <h2>Aula 3: Sinalização </h2>
+            <div class="vimeo-embed">
+                 <iframe src="https://player.vimeo.com/video/1140903162?color=0077B5&title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+
+
+         <div id="aula4" class="aula-container">
+            <h2>Aula 4: Sinalização </h2>
+            <div class="vimeo-embed">
+                 <iframe src="https://player.vimeo.com/video/1140903162?color=0077B5&title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+        
+        <div class="presenca-container">
+            <h3>Registro de Presença Diária</h3>
+            <button id="presencaButton" onclick="marcarPresenca()">Marcar Presença de Hoje</button>
+            <p id="presencaMessage" style="margin-top: 10px; font-weight: bold;"></p>
+        </div>
+
+    
+        </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Funções de Navegação (showLesson) e Segurança (checkAccess, logout, verificarStatusPresenca)
+        // A função showLesson deve ser definida aqui para que os botões a encontrem no HTML
+        function showLesson(lessonId) {
+            const allLessons = document.querySelectorAll('.aula-container');
+            allLessons.forEach(lesson => lesson.style.display = 'none');
+
+            const allButtons = document.querySelectorAll('.nav-buttons button');
+            allButtons.forEach(button => button.classList.remove('active'));
+
+            const currentLesson = document.getElementById(lessonId);
+            if (currentLesson) {
+                currentLesson.style.display = 'block';
+            }
+
+            const currentButton = document.getElementById(`btn-${lessonId}`);
+            if (currentButton) {
+                currentButton.classList.add('active');
+            }
+        }
+        
+        // A lógica de checkAccess, logout, marcarPresenca e verificarStatusPresenca 
+        // é chamada pelo window.onload no script.js, mas suas definições devem estar lá.
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
