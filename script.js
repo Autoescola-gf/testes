@@ -1,5 +1,5 @@
 // =======================================================
-// ARQUIVO: script.js - CORREÇÃO CORS
+// ARQUIVO: script.js - CORREÇÃO FINAL DE COMUNICAÇÃO POST
 // =======================================================
 
 // 🚨 IMPORTANTE: Mantenha sua URL de Apps Script aqui
@@ -80,7 +80,7 @@ function formatarTempoRestante(milissegundos) {
 }
 
 // =======================================================
-// 2. LÓGICA DE LOGIN (checkToken - CORREÇÃO CORS)
+// 2. LÓGICA DE LOGIN (checkToken - CORRIGIDO)
 // =======================================================
 
 async function checkToken() {
@@ -132,18 +132,19 @@ async function checkToken() {
             // 3. Atualiza a Planilha com a nova data de expiração (POST ADAPTADO PARA FORM DATA)
             const updateUrl = `${SHEETDB_API_URL}?action=update_expiration`;
             
-            // 🚨 MUDANÇA AQUI: Criando payload URL-encoded
+            // Criando payload URL-encoded
             const updatePayload = new URLSearchParams({
                 token: tokenInput,
                 cpf: cpfInput,
-                // O Apps Script espera este campo diretamente no e.parameter
                 expiracao_ms: novaExpiracao 
             }).toString();
 
             await fetch(updateUrl, {
                 method: 'POST', 
-                // 🚨 MUDANÇA: REMOVEMOS O HEADER 'Content-Type: application/json'
-                // headers: { 'Content-Type': 'application/json' }, 
+                // 🚨 CORREÇÃO: Define o Content-Type para garantir a leitura pelo Apps Script
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded' 
+                },
                 body: updatePayload // Enviando como form data
             });
 
@@ -262,7 +263,7 @@ function iniciarContadorExpiracao() {
 
 
 // =======================================================
-// 5. REGISTRO DE PRESENÇA (marcarPresenca - CORREÇÃO CORS)
+// 5. REGISTRO DE PRESENÇA (marcarPresenca - CORRIGIDO)
 // =======================================================
 
 function verificarStatusPresenca() {
@@ -339,12 +340,11 @@ async function marcarPresenca() {
         // PASSO ÚNICO: ATUALIZA PRINCIPAL E INSERE O LOG (POST ADAPTADO)
         // =============================================================
         
-        // 🚨 MUDANÇA AQUI: Criando payload URL-encoded (Form Data)
+        // Criando payload URL-encoded (Form Data)
         const dataToLogAndUpdate = new URLSearchParams({
-            // Campos usados pelo Apps Script para identificar a linha
+            // Campos usados pelo Apps Script para identificar a linha e para o Log/Update
             'token': token,
             'cpf': cpf,
-            // Campos usados pelo Apps Script para o Update na principal e o Log
             'nome_aluno': nome, 
             'data_registro': todayKey, 
             'ultima_presenca': todayKey, 
@@ -354,7 +354,10 @@ async function marcarPresenca() {
         // Usa a URL com a action 'marcar_presenca'
         const logResponse = await fetch(PRESENCE_LOG_API_URL, {
             method: 'POST', 
-            // 🚨 MUDANÇA: REMOVEMOS O HEADER 'Content-Type: application/json'
+            // 🚨 CORREÇÃO: Define o Content-Type para garantir a leitura pelo Apps Script
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded' 
+            },
             body: dataToLogAndUpdate // Enviando como form data
         });
 
