@@ -1,11 +1,15 @@
 // =======================================================
 // ARQUIVO: script.js
 // LÓGICA DE SEGURANÇA E REGISTRO DE PRESENÇA (GOOGLE SHEETS)
+// Substituído SheetDB por Google Apps Script (Web App)
 // =======================================================
 
-// 🚨 IMPORTANTE: Verifique se este URL é o CORRETO (Planilha Principal com status do aluno)
-const LOGIN_API_URL = 'http://localhost/autoescola/api_login.php';
-const PRESENCE_API_URL = 'http://localhost/autoescola/api_presenca.php';
+// 🚨 IMPORTANTE: SUBSTITUIR POR SUA NOVA URL DO WEB APP (Apps Script)
+// Exemplo: 'https://script.google.com/macros/s/AKfyc...SeuID/exec'
+const SHEETDB_API_URL = 'https://script.google.com/macros/s/AKfycbzqjKdllls3CvL5NFMVrYua4T109j1md7ri17PoPaENsyt3b_X90LDrixw0rb77dSRzAw/exec'; 
+
+// URL para a ação de Marcar Presença (POST com action no Apps Script)
+const PRESENCE_LOG_API_URL = `${SHEETDB_API_URL}?action=marcar_presenca`;
 
 // Chaves de localStorage para o Timer de Acesso (24h)
 const ACCESS_KEY = 'vimeo_access_granted';
@@ -105,41 +109,98 @@ function formatarTempoRestante(milissegundos) {
  * Função de Login: Busca o Token e o CPF na planilha, ativa ou renova o timer de 24h.
  */
 async function checkToken() {
-    // ... (Verificação de CPF/Token) ...
+    const tokenInput = document.getElementById('tokenInput').value.trim().toUpperCase();
+    const cpfInput = formatCPF(document.getElementById('cpfInput').value.trim());
+
+    const messageElement = document.getElementById('message');
+    const loginButton = document.getElementById('loginButton');
+
+    messageElement.textContent = '';
+    messageElement.style.color = 'red';
+
+    if (cpfInput.length !== 14 || !tokenInput) {
+        messageElement.textContent = 'Por favor, preencha o Token e o CPF corretamente.';
+        return;
+    }
+
+    loginButton.disabled = true;
+    messageElement.textContent = 'Verificando acesso...';
+    messageElement.style.color = 'gray';
 
     try {
-        // 1. Chamada para a API PHP de Login
-        const response = await fetch(LOGIN_API_URL, {
-            method: 'POST', // Use POST para enviar dados
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: tokenInput, cpf: cpfInput })
-        });
+        // 1. Busca na planilha pelo Token e CPF (Apps Script - doGet)
+        // A URL agora passa o token e cpf como parâmetros GET para o Apps Script
+        const searchUrl = `${SHEETDB_API_URL}?token=${tokenInput}&cpf=${cpfInput}`;
+        const response = await fetch(searchUrl);
+        const data = await response.json();
 
-        const result = await response.json();
-
-        if (!result.success) {
-            messageElement.textContent = result.message || 'Erro: Token ou CPF inválido. Aluno não encontrado.';
+        // O Apps Script retorna [] se não encontrar
+        if (!data || data.length === 0 || data.length > 1) {
+            messageElement.textContent = 'Erro: Token ou CPF inválido. Aluno não encontrado na base.';
             return;
         }
 
-        const alunoData = result.aluno; 
-        // ... (Restante da lógica de expiração é feita pelo PHP, mas você pode reter a mensagem de status aqui) ...
+        const alunoData = data[0];
+        // Captura o nome do aluno da coluna 'nome_aluno'
+        const alunoNome = alunoData.nome_aluno || 'Aluno Não Nomeado'; 
+        
+        const agora = Date.now();
+        // A coluna 'expiracao_ms' deve ser um número inteiro no Sheets
+        const expiracaoSalva = parseInt(alunoData.expiracao_ms) || 0; 
 
-        // 3. O 'PATCH' no Sheets é substituído pela lógica no PHP. Remova a chamada PATCH aqui.
+        let novaExpiracao;
+        let statusMensagem;
+
+        // 2. Lógica do Timer (24h)
+        if (agora < expiracaoSalva) {
+            statusMensagem = 'Acesso já ativo. Redirecionando...';
+            novaExpiracao = expiracaoSalva;
+        } else {
+            novaExpiracao = agora + (DURATION_HOURS * 60 * 60 * 1000);
+
+            // 3. Atualiza a Planilha com a nova data de expiração (Apps Script - doPost com action)
+            // Agora é um POST para a URL base com a ação 'update_expiration'
+            const updateUrl = `${SHEETDB_API_URL}?action=update_expiration`;
+
+            await fetch(updateUrl, {
+                method: 'POST', // Mudou de PATCH para POST
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // O corpo da requisição precisa do token e cpf para o Apps Script saber qual linha atualizar
+                body: JSON.stringify({
+                    token: tokenInput,
+                    cpf: cpfInput,
+                    data: { expiracao_ms: novaExpiracao }
+                })
+            });
+
+            statusMensagem = `Acesso renovado por ${DURATION_HOURS} horas! Redirecionando...`;
+        }
 
         // 4. Salva o acesso no localStorage (Chaves de sessão)
-        // Use alunoData.expiracao_ms e alunoData.nome_aluno
-        localStorage.setItem(EXPIRATION_KEY, alunoData.expiracao_ms);
-        localStorage.setItem(NAME_KEY, alunoData.nome_aluno);
+        localStorage.setItem(ACCESS_KEY, 'true');
+        localStorage.setItem(EXPIRATION_KEY, novaExpiracao);
+        localStorage.setItem(CPF_KEY, cpfInput);
+        localStorage.setItem(TOKEN_KEY, tokenInput);
+        // Salva o nome no localStorage
+        localStorage.setItem(NAME_KEY, alunoNome);
 
-        // ... (Restante do código de sucesso/redirecionamento) ...
+        messageElement.textContent = statusMensagem;
+        messageElement.style.color = 'green';
+
+        setTimeout(() => {
+            window.location.href = 'videos.html';
+        }, 500);
 
     } catch (error) {
-        // ... (Tratamento de erro) ...
+        console.error("Erro de comunicação com a API (Apps Script):", error);
+        messageElement.textContent = 'Erro de comunicação ou no servidor. Tente novamente mais tarde.';
     } finally {
         loginButton.disabled = false;
     }
 }
+
 // =======================================================
 // 3. SEGURANÇA E ACESSO (Para videos.html)
 // =======================================================
@@ -277,7 +338,7 @@ function verificarStatusPresenca() {
                 return;
             }
 
-            const tempoFormatado = formatarTempoRestante(tempoRestante);
+            // O contador até a meia-noite é usado para reinicializar o botão, mas não é exibido
             presencaMessage.style.color = '#901090'; // Roxo
         };
 
@@ -294,44 +355,97 @@ function verificarStatusPresenca() {
 
 
 /**
- * Registra a presença do usuário na planilha via SheetDB, realizando PATCH (Status) e POST (Histórico).
+ * Registra a presença do usuário na planilha via Apps Script, realizando o PATCH (Status) e POST (Histórico) em uma só requisição.
  */
 async function marcarPresenca() {
-    // ... (Obtenção de variáveis e verificação de presença no localStorage) ...
+    const presencaButton = document.getElementById('presencaButton');
+    const presencaMessage = document.getElementById('presencaMessage');
+
+    presencaButton.disabled = true;
+    presencaButton.textContent = 'Registrando...';
+    presencaMessage.textContent = 'Aguarde, enviando dados para o servidor...';
+    presencaMessage.style.color = '#0077B5';
+
+    const token = localStorage.getItem(TOKEN_KEY);
+    const cpf = localStorage.getItem(CPF_KEY);
+    // Captura o nome do aluno
+    const nome = localStorage.getItem(NAME_KEY); 
+
+    const todayKey = getCurrentDateKey();
+    
+    const lastPresenceDate = localStorage.getItem(PRESENCE_DATE_KEY);
+    if (lastPresenceDate === todayKey) {
+        verificarStatusPresenca();
+        return;
+    }
+
+    // Adiciona verificação do nome
+    if (!token || !cpf || !nome) { 
+        presencaMessage.textContent = 'Erro: Falha de autenticação. Tente fazer login novamente.';
+        presencaMessage.style.color = '#dc3545';
+        presencaButton.disabled = false;
+        presencaButton.textContent = 'Marcar Presença de Hoje';
+        return;
+    }
 
     try {
+        // A busca anterior (PASSO 1) foi removida, pois o Apps Script fará a validação e atualização em um único passo no servidor.
+        
         const currentTimestamp = getCurrentTimestamp();
 
-        // 1. Chamada única para a API PHP de Presença
-        const dataToApi = {
+        // =============================================================
+        // PASSO ÚNICO: ATUALIZA PRINCIPAL E INSERE O LOG (POST para Apps Script)
+        // =============================================================
+        const dataToLogAndUpdate = {
+            // Envia token e cpf para o Apps Script encontrar a linha
             token: token,
             cpf: cpf,
-            nome: nome,
-            todayKey: todayKey,
-            currentTimestamp: currentTimestamp
+            // Envia todos os dados para o Apps Script processar e usar no Log e no Update
+            'data': {
+                // Estes campos devem ser iguais aos headers da sua planilha principal e de log
+                'token': token,
+                'cpf': cpf,
+                'nome_aluno': nome, 
+                'data_registro': todayKey, // Usado para o log
+                'ultima_presenca': todayKey, // Usado para update na principal
+                'hora_registro': currentTimestamp // Usado para update na principal e no log
+            }
         };
 
-        const response = await fetch(PRESENCE_API_URL, {
+        // Usa a URL com a action 'marcar_presenca'
+        const logResponse = await fetch(PRESENCE_LOG_API_URL, {
             method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dataToApi)
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToLogAndUpdate)
         });
 
-        const result = await response.json();
+        // O Apps Script retorna { success: true/false, message: ... }
+        const result = await logResponse.json();
 
-        if (response.ok && result.success) {
-            // Sucesso! Atualiza o localStorage
+        if (logResponse.ok && result.success) { 
+            
+            // Sucesso! Atualiza o localStorage para evitar múltiplos registros no mesmo dia
             localStorage.setItem(PRESENCE_DATE_KEY, todayKey);
-
+            
+            // 4. Finalização do Processo (MANTIDO)
             verificarStatusPresenca();
+            
             presencaMessage.style.color = '#901090';
             presencaMessage.textContent = `✅ Presença registrada com sucesso! ${currentTimestamp}`;
-
+            
         } else {
-            throw new Error(`Erro ao registrar presença: ${result.message || response.statusText}`);
+            // Trata o erro retornado pelo Apps Script ou o erro de rede/servidor
+            throw new Error(`Erro ao registrar presença: ${result.message || 'Erro de rede ou servidor.'}`);
         }
     } catch (error) {
-        // ... (Tratamento de erro) ...
+        console.error('Erro no registro de presença:', error);
+
+        presencaMessage.textContent = `Falha ao registrar. Verifique sua conexão. Erro: ${error.message}.`;
+        presencaMessage.style.color = '#dc3545';
+        presencaButton.disabled = false;
+        presencaButton.textContent = 'Tentar Registrar Presença Novamente';
     }
 }
 
@@ -379,6 +493,3 @@ function initializePage() {
 
 // Chama a função de inicialização assim que o DOM estiver carregado
 window.onload = initializePage;
-
-
-
