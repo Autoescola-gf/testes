@@ -6,7 +6,7 @@
 
 // 🚨 IMPORTANTE: SUBSTITUIR POR SUA NOVA URL DO WEB APP (Apps Script)
 // Exemplo: 'https://script.google.com/macros/s/AKfyc...SeuID/exec'
-const SHEETDB_API_URL = 'https://script.google.com/macros/s/AKfycbzqjKdllls3CvL5NFMVrYua4T109j1md7ri17PoPaENsyt3b_X90LDrixw0rb77dSRzAw/exec'; 
+const SHEETDB_API_URL = 'https://script.google.com/macros/s/AKfycbyZkAwC19qf7Lu5vT3lhS7QN03KJcr4weoU6NYLbbzcD17bbLiAh3C51vXoPvISeR40/exec'; 
 
 // URL para a ação de Marcar Presença (POST com action no Apps Script)
 const PRESENCE_LOG_API_URL = `${SHEETDB_API_URL}?action=marcar_presenca`;
@@ -492,4 +492,5 @@ function initializePage() {
 }
 
 // Chama a função de inicialização assim que o DOM estiver carregado
+
 window.onload = initializePage;
