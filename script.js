@@ -1,5 +1,5 @@
 // =======================================================
-// ARQUIVO: script.js - CORREÇÃO FINAL DE COMUNICAÇÃO POST
+// ARQUIVO: script.js - CORREÇÃO FINAL DE COMUNICAÇÃO POST + EMBED VÍDEO
 // =======================================================
 
 // 🚨 IMPORTANTE: Mantenha sua URL de Apps Script aqui
@@ -22,6 +22,62 @@ const PRESENCE_DATE_KEY = 'lastPresenceDate';
 let countdownPresenceInterval = null;
 let countdownTokenInterval = null;
 
+
+// =======================================================
+// 🚨 MAPA DE VÍDEOS (SUBSTITUA OS embedUrl PELOS SEUS LINKS REAIS)
+// =======================================================
+const VIDEO_MAP = {
+    // 🚦 Legislação de Trânsito
+    'aula1': { 
+        title: 'Aula 1: Infrações e Penalidades (Vídeo 1)',
+        embedUrl: 'https://player.vimeo.com/video/999999991?h=exemplo1&title=0&byline=0&portrait=0' 
+    },
+    'aula2': { 
+        title: 'Aula 2: Infrações e Penalidades (Vídeo 2)',
+        embedUrl: 'https://player.vimeo.com/video/999999992?h=exemplo2&title=0&byline=0&portrait=0' 
+    },
+    'aula3': { 
+        title: 'Aula 3: Normas de Circulação e Conduta',
+        embedUrl: 'https://player.vimeo.com/video/999999993?h=exemplo3&title=0&byline=0&portrait=0' 
+    },
+    'aula4': { 
+        title: 'Aula 4: Sinalização de Trânsito',
+        embedUrl: 'https://player.vimeo.com/video/999999994?h=exemplo4&title=0&byline=0&portrait=0' 
+    },
+    // 🛡️ Direção Defensiva
+    'aula5': { 
+        title: 'Aula 5: Conceitos e Elementos da Direção Defensiva',
+        embedUrl: 'https://player.vimeo.com/video/999999995?h=exemplo5&title=0&byline=0&portrait=0' 
+    },
+    'aula6': { 
+        title: 'Aula 6: Condições Adversas e Prevenção de Acidentes',
+        embedUrl: 'https://player.vimeo.com/video/999999996?h=exemplo6&title=0&byline=0&portrait=0' 
+    },
+    'aula7': { 
+        title: 'Aula 7: O Condutor e o Meio Social',
+        embedUrl: 'https://player.vimeo.com/video/999999997?h=exemplo7&title=0&byline=0&portrait=0' 
+    },
+    // 🚑 Primeiros Socorros
+    'aula8': { 
+        title: 'Aula 8: Atitudes em Caso de Acidente e Lesões',
+        embedUrl: 'https://player.vimeo.com/video/999999998?h=exemplo8&title=0&byline=0&portrait=0' 
+    },
+    'aula9': { 
+        title: 'Aula 9: Sinalização do Local e Cuidados com a Vítima',
+        embedUrl: 'https://player.vimeo.com/video/999999999?h=exemplo9&title=0&byline=0&portrait=0' 
+    },
+    // 🌱 Meio Ambiente
+    'aula10': { 
+        title: 'Aula 10: O Veículo e o Meio Ambiente',
+        embedUrl: 'https://player.vimeo.com/video/999999910?h=exemplo10&title=0&byline=0&portrait=0' 
+    },
+    'aula11': { 
+        title: 'Aula 11: Relacionamento Interpessoal no Trânsito',
+        embedUrl: 'https://player.vimeo.com/video/999999911?h=exemplo11&title=0&byline=0&portrait=0' 
+    },
+};
+
+
 // =======================================================
 // 1. FUNÇÕES DE UTILIDADE E AUXILIARES (Sem alterações)
 // =======================================================
@@ -32,6 +88,15 @@ function formatCPF(cpf) {
         return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
     return cpf;
+}
+
+function abrirLog() {           
+    window.location.href = 'Log.html';
+}
+
+function abrirAulas() {    
+    // Redireciona para o novo nome do arquivo, se for o caso
+    window.location.href = 'TODAS AS AULAS.html'; 
 }
 
 function getCurrentDateKey() {
@@ -80,7 +145,7 @@ function formatarTempoRestante(milissegundos) {
 }
 
 // =======================================================
-// 2. LÓGICA DE LOGIN (checkToken - CORRIGIDO)
+// 2. LÓGICA DE LOGIN (checkToken)
 // =======================================================
 
 async function checkToken() {
@@ -192,8 +257,12 @@ function checkAccess() {
         return false;
     }
 
-    if(document.getElementById('aula1')) {
-        showLesson('aula1');
+    // Obter o ID da aula da URL (lesson=aulaX)
+    const urlParams = new URLSearchParams(window.location.search);
+    const lessonId = urlParams.get('lesson') || 'aula1'; // Padrão para aula1
+    
+    if(document.getElementById('videoPlayerEmbed')) { // Verifica se estamos na página videos.html
+        showLesson(lessonId); // Carrega a aula específica (ou aula1)
         verificarStatusPresenca();
         iniciarContadorExpiracao(); 
     }
@@ -207,6 +276,7 @@ function logout() {
     localStorage.removeItem(CPF_KEY);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(NAME_KEY);
+    localStorage.removeItem(PRESENCE_DATE_KEY); // Limpa o status de presença ao sair
 
     if (countdownPresenceInterval !== null) {
         clearInterval(countdownPresenceInterval);
@@ -263,7 +333,7 @@ function iniciarContadorExpiracao() {
 
 
 // =======================================================
-// 5. REGISTRO DE PRESENÇA (marcarPresenca - CORRIGIDO)
+// 5. REGISTRO DE PRESENÇA (marcarPresenca)
 // =======================================================
 
 function verificarStatusPresenca() {
@@ -383,25 +453,58 @@ async function marcarPresenca() {
 }
 
 // =======================================================
-// 6. FUNÇÕES DE NAVEGAÇÃO (Sem alterações)
+// 6. FUNÇÕES DE NAVEGAÇÃO (MODIFICADA PARA INCORPORAÇÃO DE VÍDEO)
 // =======================================================
 
 function showLesson(lessonId) {
-    const allLessons = document.querySelectorAll('.aula-container');
-    allLessons.forEach(lesson => lesson.style.display = 'none');
+    // 1. Lógica para incorporação do vídeo
+    const lessonData = VIDEO_MAP[lessonId];
+    const playerContainer = document.getElementById('videoPlayerEmbed');
+    const titleElement = document.getElementById('lessonTitle');
+    
+    // Fallback: se a aula não for encontrada, mostra uma mensagem de erro no player.
+    if (!lessonData || !playerContainer || !titleElement) {
+        console.error("Dados da aula ou contêiner não encontrados para:", lessonId);
+        playerContainer.innerHTML = '<p style="color: red; text-align: center; padding: 50px;">Erro: Conteúdo da aula não encontrado. Verifique o ID da aula no VIDEO_MAP.</p>';
+        titleElement.textContent = 'Aula Não Encontrada';
+        return;
+    }
 
-    const allButtons = document.querySelectorAll('.nav-buttons button');
-    allButtons.forEach(button => button.classList.remove('active'));
+    // Atualiza o título da aula
+    titleElement.textContent = lessonData.title;
 
-    const currentLesson = document.getElementById(lessonId);
-    if (currentLesson) {
-        currentLesson.style.display = 'block';
-    }
+    // Cria e injeta o código iframe do vídeo (Recomendamos altura de 500px para desktop)
+    const iframeCode = `
+        <iframe src="${lessonData.embedUrl}" 
+                width="100%" 
+                height="500" 
+                frameborder="0" 
+                allow="autoplay; fullscreen; picture-in-picture" 
+                allowfullscreen 
+                webkitallowfullscreen 
+                mozallowfullscreen>
+        </iframe>
+    `;
 
-    const currentButton = document.getElementById(`btn-${lessonId}`);
-    if (currentButton) {
-        currentButton.classList.add('active');
-    }
+    // Injeta o HTML no container do player
+    playerContainer.innerHTML = iframeCode;
+
+
+    // 2. Lógica de navegação original (Habilitar o botão da aula atual)
+    // O videos.html deve ter um botão de navegação com ID 'btn-aulaX' para isso funcionar.
+    const allButtons = document.querySelectorAll('.nav-buttons button');
+    allButtons.forEach(button => button.classList.remove('active'));
+
+    const currentButton = document.getElementById(`btn-${lessonId}`);
+    if (currentButton) {
+        currentButton.classList.add('active');
+    }
+
+    // 3. Atualiza o link do botão "Catálogo de Aulas" para abrir o catálogo
+    const catalogLink = document.getElementById('catalogLink');
+    if (catalogLink) {
+        catalogLink.onclick = abrirAulas;
+    }
 }
 
 // =======================================================
