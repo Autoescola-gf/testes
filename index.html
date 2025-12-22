@@ -3,101 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesso às Aulas TESTE | Login</title>
+    <title>Acesso às Aulas | Login</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #a855f7;
+            --primary-hover: #9333ea;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+        }
+
         body {
-            font-family: sans-serif;
+            font-family: 'Inter', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #c1c1c1;
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
             margin: 0;
+            color: var(--text);
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 380px;
             text-align: center;
         }
-        .container {
-            background: black;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 400px;
-        }
+
         h1 {
-            color: #333;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #fff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p { color: #94a3b8; font-size: 0.95rem; margin-bottom: 24px; }
+
+        #expiration-alert {
+            background: rgba(245, 158, 11, 0.1);
+            color: #fbbf24;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(253, 186, 116, 0.2);
             margin-bottom: 20px;
+            display: none;
+            font-size: 0.85rem;
         }
-        p {
-            color: #ffffff
-        }
-        input[type="text"] {
+
+        input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box; 
-            font-size: 16px;
-        }
-        button {
-            background-color: #901090;
+            padding: 14px;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #0f172a;
             color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2);
+        }
+
+        button {
             width: 100%;
-            transition: background-color 0.3s;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);
         }
+
         button:hover {
-            background-color: #901090;
+            background: var(--primary-hover);
+            transform: translateY(-2px);
         }
+
         #message {
             margin-top: 15px;
-            color: red;
-            font-weight: bold;
-        }
-        #expiration-alert {
-            color: darkorange;
-            font-weight: bold;
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid darkorange;
-            border-radius: 4px;
-            display: none; 
+            color: #ef4444;
+            font-size: 0.85rem;
+            min-height: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔑 Acesso Privado</h1>
-
-        <p id="expiration-alert">Seu tempo de acesso de 24 horas esgotou. Por favor, faça login novamente com seu token e CPF.</p>
-
-        <p>Auto escola Guarda - Preencha seus dados:</p>
+        <h1>Acesso Privado</h1>
+        <div id="expiration-alert">Sua sessão expirou. Por favor, entre novamente.</div>
+        <p>Auto Escola Guarda</p>
         
-        <input type="text" id="cpfInput" placeholder="CPF (Ex: 000.000.000-00)" maxlength="14" required>
-        <input type="text" id="tokenInput" placeholder="Digite seu token de acesso" required>
-        <button id="loginButton" onclick="checkToken()">Acessar Aulas</button>
+        <input type="text" id="cpfInput" placeholder="CPF (000.000.000-00)" maxlength="14">
+        <input type="text" id="tokenInput" placeholder="Token de acesso">
+        <button id="loginButton" onclick="checkToken()">Entrar na Plataforma</button>
         
         <p id="message"></p>
     </div>
-    
     <script src="script.js"></script>
-
-    <script>
-        // Lógica para exibir a mensagem de expiração na URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('expired') === 'true') {
-            document.getElementById('expiration-alert').style.display = 'block';
-        }
-    </script>
 </body>
 </html>
-
-
-
-
-
-
